@@ -1,0 +1,151 @@
+# LLM-Neofetch++ Configuration
+
+# Color Theme
+colors:
+  primary: "\033[1;34m"      # Blue
+  secondary: "\033[1;36m"    # Cyan
+  success: "\033[1;32m"      # Green
+  warning: "\033[1;33m"      # Yellow
+  danger: "\033[1;31m"       # Red
+  info: "\033[1;35m"         # Magenta
+  reset: "\033[0m"
+  bold: "\033[1m"
+  dim: "\033[2m"
+
+# UI Settings
+ui:
+  box_width: 76
+  use_emoji: true
+  show_progress_bars: true
+  compact_mode: false
+  
+# Performance Thresholds
+thresholds:
+  vram:
+    excellent: 24  # GB
+    good: 12
+    moderate: 8
+    basic: 4
+  
+  ram:
+    excellent: 64  # GB
+    good: 32
+    moderate: 16
+    basic: 8
+  
+  disk_speed:  # MB/s
+    excellent: 2000
+    good: 500
+    moderate: 100
+
+# Model Recommendations
+models:
+  tiny:
+    size_range: "1-3B"
+    vram_min: 0
+    ram_min: 4
+    examples:
+      - "Llama 3.2 1B/3B"
+      - "Qwen2.5 0.5B/1.5B"
+      - "Phi-3 Mini"
+  
+  small:
+    size_range: "7-8B"
+    vram_min: 4
+    ram_min: 8
+    examples:
+      - "Llama 3.1 8B"
+      - "Qwen2.5 7B"
+      - "Gemma 2 9B"
+  
+  medium:
+    size_range: "13-14B"
+    vram_min: 8
+    ram_min: 16
+    examples:
+      - "Llama 2 13B"
+      - "Qwen2.5 14B"
+      - "Mistral Medium"
+  
+  large:
+    size_range: "30-34B"
+    vram_min: 12
+    ram_min: 24
+    examples:
+      - "Llama 3.1 33B"
+      - "Qwen2.5 32B"
+      - "Yi 34B"
+  
+  xlarge:
+    size_range: "70-72B"
+    vram_min: 24
+    ram_min: 48
+    examples:
+      - "Llama 3.1 70B"
+      - "Qwen2.5 72B"
+
+# Quantization Info
+quantization:
+  gguf:
+    Q2_K:
+      bits: 2.5
+      quality: "⭐"
+      use_case: "Extreme compression, significant quality loss"
+    Q3_K_M:
+      bits: 3.5
+      quality: "⭐⭐"
+      use_case: "High compression, noticeable quality loss"
+    Q4_K_M:
+      bits: 4.5
+      quality: "⭐⭐⭐⭐"
+      use_case: "Best balance - recommended for most users"
+    Q5_K_M:
+      bits: 5.5
+      quality: "⭐⭐⭐⭐⭐"
+      use_case: "High quality, larger size"
+    Q6_K:
+      bits: 6.5
+      quality: "⭐⭐⭐⭐⭐"
+      use_case: "Near-lossless quality"
+    Q8_0:
+      bits: 8.0
+      quality: "⭐⭐⭐⭐⭐"
+      use_case: "Virtually lossless"
+
+# LLM Backends
+backends:
+  ollama:
+    ease_of_use: 5
+    performance: 4
+    features: 4
+    platforms: ["Windows", "Linux", "macOS"]
+    
+  llama_cpp:
+    ease_of_use: 3
+    performance: 4
+    features: 3
+    platforms: ["Windows", "Linux", "macOS"]
+    
+  vllm:
+    ease_of_use: 2
+    performance: 5
+    features: 5
+    platforms: ["Linux", "Windows (WSL)"]
+    
+  exllamav2:
+    ease_of_use: 3
+    performance: 5
+    features: 4
+    platforms: ["Windows", "Linux"]
+    
+  lm_studio:
+    ease_of_use: 5
+    performance: 4
+    features: 5
+    platforms: ["Windows", "Linux", "macOS"]
+
+# Benchmark Settings
+benchmark:
+  enabled: true
+  test_file_size_mb: 100
+  timeout_seconds: 30
