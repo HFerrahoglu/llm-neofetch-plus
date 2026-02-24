@@ -123,9 +123,15 @@ class CPUDetector(BaseDetector):
         cores_physical = psutil.cpu_count(logical=False) or 0
         cores_logical = psutil.cpu_count(logical=True) or 0
 
-        freq = psutil.cpu_freq()
-        current_freq = freq.current if freq else 0
-        max_freq = freq.max if freq else 0
+        current_freq = 0
+        max_freq = 0
+        try:
+            freq = psutil.cpu_freq()
+            if freq:
+                current_freq = freq.current
+                max_freq = freq.max
+        except AttributeError:
+            pass
 
         cpu_percent = psutil.cpu_percent(interval=1)
 
