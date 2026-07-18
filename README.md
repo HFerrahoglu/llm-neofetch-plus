@@ -5,8 +5,8 @@
 
 # 🚀 LLM-Neofetch++ 
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![Python](https://img.shields.io/badge/python-3.8+-green.svg)
+![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)
+![Python](https://img.shields.io/badge/python-3.9+-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-orange.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows%20|%20Linux%20|%20macOS-lightgrey.svg)
 
@@ -22,18 +22,29 @@ Show detailed hardware specs optimized for running local AI models
 
 ### 🔍 **Comprehensive Hardware Detection**
 - ✅ **CPU**: Model, cores, threads, frequency, temperature, usage
-- ✅ **GPU**: NVIDIA (nvidia-smi), AMD (rocm-smi), Intel Arc detection
+- ✅ **GPU**: NVIDIA (nvidia-smi/pynvml), AMD (amd-smi/rocm-smi), Intel Arc
 - ✅ **VRAM**: Total, used, and available video memory
-- ✅ **RAM**: Physical memory and swap information
+- ✅ **NPU**: Intel AI Boost, AMD XDNA, Apple Neural Engine
+- ✅ **RAM**: Capacity, module speed, and bandwidth estimate
 - ✅ **Storage**: Disk type (NVMe/SSD/HDD), capacity, speed benchmarks
 - ✅ **Battery**: Charge level, power status, time remaining (laptops)
-- ✅ **Apple Silicon**: M1/M2/M3/M4 detection with unified memory
+- ✅ **Apple Silicon**: M1-M4 variants with GPU cores and memory bandwidth
+- ✅ **AI Runtimes**: CUDA, ROCm, Vulkan, DirectML, Metal versions
+- ✅ **Environment**: WSL, Docker, and cloud VM (AWS/GCP/Azure) detection
 
 ### 🎯 **Smart AI/LLM Features**
-- 🤖 **Model Recommendations**: Personalized suggestions based on your hardware
+- 🤖 **Context-Aware Recommendations**: max context length and token/s
+  estimates per model tier, computed from weights + KV cache on your hardware
+- ✅ **`can-run` Check**: "will llama3.1:70b fit?" — per-quant verdicts with
+  memory needs, speed estimates, and max context
+- 🔌 **Backend Detection**: finds installed Ollama / LM Studio / llama.cpp /
+  vLLM with version and running state
+- 📦 **Installed Model Scan**: lists your downloaded models with a
+  fits-on-GPU/CPU verdict for each
+- ⚡ **Real Benchmarks**: actual tokens/s via Ollama (`--bench-llm`), memory
+  bandwidth (`--bench-mem`), disk speed (`-b`)
 - 📊 **Quantization Guide**: GGUF formats explained (Q2_K through Q8_0)
-- 🚀 **Backend Comparison**: Ollama, llama.cpp, vLLM, ExLlamaV2, LM Studio
-- ⚡ **Performance Estimates**: Token/s predictions for different model sizes
+- 🎓 **Fine-Tuning Guide**: QLoRA/LoRA VRAM requirements with fit verdicts
 - 💡 **Optimization Tips**: Specific advice for your system configuration
 
 ### 🎨 **Beautiful UI**
@@ -64,7 +75,7 @@ cd llm-neofetch-plus
 pip install -r requirements.txt
 
 # Run directly
-python llm_neofetch.py
+python -m llm_neofetch
 
 # Or install globally
 pip install -e .
@@ -98,17 +109,46 @@ llm-neofetch -d 3
 llm-neofetch -i
 ```
 
+### Will it run?
+
+```bash
+# Check whether a model fits (per-quant verdicts, speed, max context)
+llm-neofetch can-run llama3.1:70b
+llm-neofetch can-run qwen2.5:32b --quant Q4_K_M --context 16384
+# Exit code: 0 = fits, 2 = does not fit (script-friendly)
+```
+
+### Benchmarks
+
+```bash
+llm-neofetch -b                        # Disk read/write speed
+llm-neofetch --bench-mem               # Memory copy bandwidth
+llm-neofetch --bench-llm               # Real tokens/s via Ollama
+llm-neofetch --bench-llm llama3.2:1b   # ...with a specific model
+```
+
+### Monitoring & machine output
+
+```bash
+llm-neofetch --watch                   # Live CPU/RAM/GPU/LLM-process monitor
+llm-neofetch --watch --interval 5      # Slower refresh
+llm-neofetch --json                    # Machine-readable JSON to stdout
+llm-neofetch diff desktop.json laptop.json   # Compare two systems
+```
+
+### Appearance & export
+
+```bash
+llm-neofetch --theme dracula           # Themes: dracula, nord, solarized, mono
+llm-neofetch --compact                 # Less whitespace
+llm-neofetch --no-emoji                # Plain icons
+llm-neofetch --export report.html      # Full-color HTML report
+llm-neofetch --export report.json      # JSON / .yaml / .md also supported
+```
+
 ### Advanced Usage
 
 ```bash
-# Run disk benchmark (takes ~10 seconds)
-llm-neofetch -b
-
-# Export to different formats
-llm-neofetch --export report.json      # JSON format
-llm-neofetch --export report.yaml      # YAML format
-llm-neofetch --export report.md        # Markdown format
-
 # Verbose logging for debugging
 llm-neofetch -v
 
@@ -116,7 +156,7 @@ llm-neofetch -v
 llm-neofetch --config /path/to/config.yaml
 
 # Combine options
-llm-neofetch -d 3 -b --export full_report.json
+llm-neofetch -d 3 -b --bench-mem --export full_report.html
 ```
 
 ---
@@ -125,59 +165,49 @@ llm-neofetch -d 3 -b --export full_report.json
 
 ### Normal Output
 ```
-╔══════════════════════════════════════════════════════════════════════════╗
-║              ⚡ LLM • NEOFETCH ++  ⚡                                   ║
-║         Advanced System Info for Local LLM Usage                         ║
-║                    v1.0.0 • 2026 Edition                                 ║
-╚══════════════════════════════════════════════════════════════════════════╝
+┌─ ⚡ LLM-Neofetch++ v1.1.0 ───────────────────────────────────────────────┐
+│  Advanced system info for local LLM usage                                │
+└──────────────────────────────────────────────────────────────────────────┘
 
-────────────────────────────────────────────────────────────────────────────
-💻 System Information
-────────────────────────────────────────────────────────────────────────────
+── 💻 System Information ───────────────────────────────────────────────────
   OS             Linux-6.5.0-1-amd64-x86_64-with-glibc2.38
   Kernel         6.5.0 (x86_64)
   Uptime         2d 14h 32m
   Python         3.11.5
 
-────────────────────────────────────────────────────────────────────────────
-🔧 CPU
-────────────────────────────────────────────────────────────────────────────
+── 🔧 CPU ──────────────────────────────────────────────────────────────────
   Model          AMD Ryzen 9 7950X 16-Core Processor
   Cores          16 physical / 32 threads
-  Frequency      4200 MHz
-  Usage          [███████████░░░░░░░░░░░░░░░░░░░]  35.2%
+  Frequency      4200 MHz (max 5700 MHz)
+  Usage          ███████████░░░░░░░░░░░░░░░░░░░  35.2%
 
-────────────────────────────────────────────────────────────────────────────
-🎮 GPU
-────────────────────────────────────────────────────────────────────────────
-    🟢 NVIDIA GeForce RTX 4090
-      VRAM: 24.0 GB total
-            [████████████░░░░░░░░░░░░░] 12.4/24.0 GB
-      Usage          [█████░░░░░░░░░░░░░░░░░░░░] 20.0%
-      Temp: 58°C
+── 🎮 GPU ──────────────────────────────────────────────────────────────────
+  🟢 NVIDIA GeForce RTX 4090
+     VRAM    ████████████░░░░░░░░░░░░░ 12.4/24.0 GB
+     Usage   █████░░░░░░░░░░░░░░░░░░░░  20.0%
+     Temp    58°C
 
-────────────────────────────────────────────────────────────────────────────
-🎯 Personalized Model Recommendations
-────────────────────────────────────────────────────────────────────────────
+── 🎯 Model Recommendations ────────────────────────────────────────────────
+  Model Tier            Examples
+  Extra Large (70-72B)  Llama 3.1 70B, Qwen2.5 72B
+  Large (30-34B)        Llama 3.1 33B, Qwen2.5 32B, Yi 34B
+  Medium (13-14B)       Llama 2 13B, Qwen2.5 14B, Mistral Medium
 
-  ▸ Extra Large Models (70-72B)
-    • Llama 3.1 70B
-    • Qwen2.5 72B
-
-  ▸ Large Models (30-34B)
-    • Llama 3.1 33B
-    • Qwen2.5 32B
+── 💡 Optimization Tips ────────────────────────────────────────────────────
+  ✓  Excellent VRAM - Can run 70B models with Q4 quantization
+  ✓  Fast storage - Quick model loading and context management
 ```
 
 ---
 
 ## ⚙️ Configuration
 
-LLM-Neofetch++ uses a YAML configuration file. By default, it looks for:
+LLM-Neofetch++ uses a YAML configuration file. By default, it looks for
+(first match wins, merged over built-in defaults):
 
-1. `./config/config.yaml` (in the project directory)
-2. `~/.config/llm-neofetch/config.yaml`
-3. `/etc/llm-neofetch/config.yaml`
+1. `~/.config/llm-neofetch/config.yaml`
+2. `/etc/llm-neofetch/config.yaml`
+3. The bundled package config (`llm_neofetch/config/config.yaml`)
 
 ### Sample Configuration
 
@@ -189,12 +219,12 @@ ui:
   show_progress_bars: true
   compact_mode: false
 
-# Color Theme
+# Color Theme — Rich style strings (names, hex codes, or "bold cyan" combos)
 colors:
-  primary: "\033[1;34m"    # Blue
-  success: "\033[1;32m"    # Green
-  warning: "\033[1;33m"    # Yellow
-  danger: "\033[1;31m"     # Red
+  primary: "blue"
+  success: "green"
+  warning: "yellow"
+  danger: "red"
 
 # Performance Thresholds
 thresholds:
@@ -212,17 +242,22 @@ thresholds:
 
 ```
 llm-neofetch-plus/
-├── llm_neofetch.py          # Main application
-├── src/
+├── llm_neofetch/
+│   ├── __init__.py          # Package exports
+│   ├── __main__.py          # `python -m llm_neofetch` entry point
+│   ├── app.py               # Main application and CLI
 │   ├── detectors.py         # Hardware detection modules
-│   └── ui.py                # UI rendering and formatting
-├── config/
-│   └── config.yaml          # Configuration file
+│   ├── environment.py       # Backend/runtime/process/cloud detection
+│   ├── llm_math.py          # VRAM, KV cache, and speed estimation
+│   ├── ui.py                # UI rendering and formatting
+│   ├── defaults.py          # Built-in default configuration
+│   └── config/
+│       └── config.yaml      # Bundled configuration file
 ├── tests/
 │   └── test_all.py          # Unit tests
 ├── requirements.txt         # Python dependencies
-├── setup.py                 # Package setup
-└── README.md               # This file
+├── pyproject.toml           # Package setup
+└── README.md                # This file
 ```
 
 ### Running Tests
@@ -274,13 +309,14 @@ Contributions are welcome! Please:
 
 ## 🚀 Roadmap
 
-- [ ] Docker container support
+- [x] Cloud/VM environment detection (AWS, GCP, Azure, WSL, Docker)
+- [x] LLM benchmarking (real tokens/s via Ollama, memory bandwidth)
+- [x] Backend integration (Ollama, LM Studio, llama.cpp, vLLM detection)
+- [x] Context-aware model recommendations (KV cache math)
+- [ ] Docker container support (distribution)
 - [ ] Web dashboard (optional)
 - [ ] Historical tracking and graphs
-- [ ] Cloud GPU detection (AWS, GCP, Azure)
-- [ ] LLM benchmarking suite
 - [ ] Automatic model download suggestions
-- [ ] Integration with popular LLM frameworks
 
 ---
 

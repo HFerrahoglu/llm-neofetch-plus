@@ -1,16 +1,17 @@
 # LLM-Neofetch++ Configuration
 
 # Color Theme
+# Values are Rich style strings: color names ("green", "bright_blue"),
+# hex codes ("#5f87ff"), or combinations ("bold cyan").
+# Raw ANSI escape codes are NOT supported.
 colors:
-  primary: "\033[1;34m"      # Blue
-  secondary: "\033[1;36m"    # Cyan
-  success: "\033[1;32m"      # Green
-  warning: "\033[1;33m"      # Yellow
-  danger: "\033[1;31m"       # Red
-  info: "\033[1;35m"         # Magenta
-  reset: "\033[0m"
-  bold: "\033[1m"
-  dim: "\033[2m"
+  primary: "blue"
+  secondary: "cyan"
+  success: "green"
+  warning: "yellow"
+  danger: "red"
+  info: "magenta"
+  dim: "dim"
 
 # UI Settings
 ui:
@@ -18,6 +19,7 @@ ui:
   use_emoji: true
   show_progress_bars: true
   compact_mode: false
+  theme: "default"   # default, dracula, nord, solarized, mono
   
 # Performance Thresholds
 thresholds:

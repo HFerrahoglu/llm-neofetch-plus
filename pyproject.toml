@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "llm-neofetch-plus"
-version = "1.0.0"
+version = "1.2.0"
 description = "Advanced system information tool for local LLM usage"
 readme = "README.md"
 license = {text = "MIT"}
@@ -23,15 +23,18 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Operating System :: OS Independent",
 ]
 dependencies = [
     "psutil>=5.9.0",
     "PyYAML>=6.0",
+    "rich>=13.0.0",
+    'wmi>=1.5.1; platform_system == "Windows"',
 ]
 
 [project.optional-dependencies]
-windows = ["wmi>=1.5.1"]
+gpu = ["pynvml>=11.0.0"]
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
@@ -40,8 +43,8 @@ dev = [
 ]
 
 [project.scripts]
-llm-neofetch = "llm_neofetch:main"
-llm-neofetch-plus = "llm_neofetch:main"
+llm-neofetch = "llm_neofetch.app:main"
+llm-neofetch-plus = "llm_neofetch.app:main"
 
 [project.urls]
 Homepage = "https://github.com/HFerrahoglu/llm-neofetch-plus"
@@ -50,10 +53,10 @@ Issues = "https://github.com/HFerrahoglu/llm-neofetch-plus/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["llm_neofetch*", "src*", "config*"]
+include = ["llm_neofetch*"]
 
 [tool.setuptools.package-data]
-"*" = ["config/*.yaml"]
+llm_neofetch = ["config/*.yaml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -70,10 +73,7 @@ select = ["E", "F", "W", "I", "N", "UP"]
 ignore = ["E501", "UP006", "UP035"]
 
 [tool.mypy]
-python_version = "3.9"
-warn_return_any = true
 warn_unused_configs = true
+check_untyped_defs = true
 ignore_missing_imports = true
 no_implicit_optional = false
-allow_untyped_calls = true
-allow_untyped_defs = true

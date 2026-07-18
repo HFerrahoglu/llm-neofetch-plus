@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Example: Using LLM-Neofetch++ as a Python library."""
 
+import os
 import sys
+import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -34,7 +36,7 @@ def main():
 
     print("\n\n=== Example 3: Export to JSON ===\n")
 
-    output_file = "/tmp/system_info.json"
+    output_file = os.path.join(tempfile.gettempdir(), "system_info.json")
     app.export(info, format="json", output_file=output_file)
     print(f"Exported to: {output_file}")
 

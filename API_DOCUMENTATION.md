@@ -5,12 +5,11 @@ for system hardware detection and display.
 
 ## Installation
 
+```bash
+pip install llm-neofetch-plus
+```
+
 ```python
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path("llm-neofetch-plus")))
-
 from llm_neofetch import LLMNeofetch
 ```
 
@@ -80,7 +79,7 @@ Export system info to file.
 Detects operating system and basic system information.
 
 ```python
-from src.detectors import OSDetector
+from llm_neofetch.detectors import OSDetector
 
 os_info = OSDetector.detect()
 print(os_info["platform"])  # "Linux-6.5.0-x86_64..."
@@ -98,7 +97,7 @@ print(f"{uptime['days']}d {uptime['hours']}h")
 Detects CPU information including cores, frequency, and temperature.
 
 ```python
-from src.detectors import CPUDetector
+from llm_neofetch.detectors import CPUDetector
 
 cpu_info = CPUDetector.detect()
 
@@ -118,7 +117,7 @@ print(cpu_info["temperature_c"])      # 58.5 or None
 Detects GPU information from NVIDIA, AMD, Intel, or WMI.
 
 ```python
-from src.detectors import GPUDetector
+from llm_neofetch.detectors import GPUDetector
 
 gpus = GPUDetector.detect()
 
@@ -139,17 +138,18 @@ for gpu in gpus:
 Detects RAM and swap memory information.
 
 ```python
-from src.detectors import MemoryDetector
+from llm_neofetch.detectors import MemoryDetector
 
 mem_info = MemoryDetector.detect()
 
 ram_gb = mem_info["ram_total_bytes"] / (1024**3)
-print(f"Total RAM: {ram_gb:.1f} GB")
-print(f"Available: {mem_info["ram_available_bytes"] / (1024**3):.1f} GB")
-print(f"Usage: {mem_info["ram_percent"]}%")
-
+available_gb = mem_info["ram_available_bytes"] / (1024**3)
 swap_gb = mem_info["swap_total_bytes"] / (1024**3)
-print(f"Swap: {swap_gb:.1f} GB ({mem_info["swap_percent"]}% used)")
+
+print(f"Total RAM: {ram_gb:.1f} GB")
+print(f"Available: {available_gb:.1f} GB")
+print(f"Usage: {mem_info['ram_percent']}%")
+print(f"Swap: {swap_gb:.1f} GB ({mem_info['swap_percent']}% used)")
 ```
 
 **Returns:**
@@ -160,7 +160,7 @@ print(f"Swap: {swap_gb:.1f} GB ({mem_info["swap_percent"]}% used)")
 Detects disk storage information including type (SSD/NVMe/HDD).
 
 ```python
-from src.detectors import DiskDetector
+from llm_neofetch.detectors import DiskDetector
 
 disks = DiskDetector.detect()
 
@@ -180,19 +180,23 @@ for disk in disks:
 Benchmark disk read and write speeds.
 
 **Args:**
-- `path`: Directory path for benchmark file. Defaults to home directory.
+- `path`: Directory path for benchmark file. Defaults to the system temp
+  directory. Falls back to a writable directory on the same drive if the
+  requested path is not writable.
 - `size_mb`: Size of test file in megabytes.
 - `timeout`: Maximum benchmark duration in seconds.
 
 **Returns:**
-- Dictionary with read/write speeds in MB/s, or None on failure.
+- Dictionary with read/write speeds in MB/s and the directory used
+  (`path`), or None on failure. Note: read speed may include the OS page
+  cache.
 
 ### BatteryDetector
 
 Detects battery information on laptops.
 
 ```python
-from src.detectors import BatteryDetector
+from llm_neofetch.detectors import BatteryDetector
 
 battery = BatteryDetector.detect()
 
@@ -210,7 +214,7 @@ if battery:
 Detects motherboard information.
 
 ```python
-from src.detectors import MotherboardDetector
+from llm_neofetch.detectors import MotherboardDetector
 
 board = MotherboardDetector.detect()
 print(board)  # "ASUS ROG Strix X670E-E Gaming WiFi"
@@ -224,7 +228,7 @@ print(board)  # "ASUS ROG Strix X670E-E Gaming WiFi"
 Detects Apple Silicon (M-series) chip information.
 
 ```python
-from src.detectors import AppleSiliconDetector
+from llm_neofetch.detectors import AppleSiliconDetector
 
 apple = AppleSiliconDetector.detect()
 
@@ -238,6 +242,43 @@ if apple:
 **Returns:**
 - `dict | None`: Chip details or None if not Apple Silicon.
 
+## LLM Math (`llm_neofetch.llm_math`)
+
+Planning heuristics for model memory and speed. All functions are pure.
+
+```python
+from llm_neofetch import llm_math
+
+llm_math.weights_gb(8, 4.5)                  # ~4.2 GiB for 8B @ Q4_K_M
+llm_math.kv_cache_gb(8, 65536)               # KV cache at 64K context
+llm_math.total_memory_gb(8, 4.5, 8192)       # weights + KV + overhead
+llm_math.max_context_tokens(8, 4.5, 12.0)    # max context in a 12 GB budget
+llm_math.tokens_per_second(4.2, 400)         # bandwidth-bound speed estimate
+llm_math.finetune_vram_gb(8, "qlora")        # fine-tuning VRAM estimate
+llm_math.parse_model_size("llama3.1:70b")    # 70.0
+llm_math.parse_quant("8b-instruct-q4_K_M")   # "Q4_K_M"
+```
+
+## Environment Detection (`llm_neofetch.environment`)
+
+```python
+from llm_neofetch.environment import (
+    BackendDetector,     # installed Ollama/LM Studio/llama.cpp/vLLM
+    EnvironmentDetector, # "Bare metal", "WSL2", "Docker", "AWS EC2", ...
+    ModelScanner,        # locally downloaded models (name, size_gb, source)
+    OllamaBenchmark,     # real tokens/s via the Ollama API
+    ProcessDetector,     # running LLM processes with RAM/VRAM usage
+    RuntimeDetector,     # CUDA/ROCm/Vulkan/DirectML/Metal versions
+)
+
+backends = BackendDetector.detect()
+models = ModelScanner.scan()
+result = OllamaBenchmark.run()   # None if Ollama isn't reachable
+```
+
+All detection is best-effort: on systems without the relevant tools these
+return empty lists / None values instead of raising.
+
 ## UI Renderer
 
 ### UIRenderer
@@ -245,7 +286,7 @@ if apple:
 Handles all visual output, formatting, and display for terminal.
 
 ```python
-from src.ui import UIRenderer
+from llm_neofetch.ui import UIRenderer
 import yaml
 
 with open("config/config.yaml") as f:
@@ -272,19 +313,23 @@ Format bytes into human-readable size.
 **Returns:**
 - Formatted string like "1.5 GiB" or "500 MiB".
 
-#### `progress_bar(value: float, max_value: float, width: int = 20, label: str = "", show_percent: bool = True) -> str`
+#### `bar(value: float, max_value: float, width: int = 30, invert: bool = False, show_percent: bool = True) -> rich.text.Text`
 
-Generate a visual progress bar.
+Build a colored usage bar.
 
 **Args:**
 - `value`: Current value.
 - `max_value`: Maximum value.
 - `width`: Bar character width.
-- `label`: Optional label text.
-- `show_percent`: Show percentage on the right.
+- `invert`: Treat high values as good (colored green, e.g. battery charge).
+- `show_percent`: Append the percentage after the bar.
 
 **Returns:**
-- Formatted progress bar string.
+- Rich `Text` renderable.
+
+#### `print_bar(label: str, value: float, max_value: float, indent: int = 2, invert: bool = False)`
+
+Print a labeled usage bar aligned with key-value rows.
 
 #### `print_gpu_info(gpu: dict)`
 
@@ -310,10 +355,6 @@ Print comparison of LLM inference backends.
 
 Print optimization tips based on system configuration.
 
-#### `center_text(text: str, width: int) -> str`
-
-Center text within specified width, ignoring ANSI codes.
-
 #### `print_benchmark_results(results: dict)`
 
 Print disk benchmark results with speed classification.
@@ -323,7 +364,7 @@ Print disk benchmark results with speed classification.
 Formats system information for export to various file formats.
 
 ```python
-from src.ui import ExportFormatter, UIRenderer
+from llm_neofetch.ui import ExportFormatter, UIRenderer
 
 formatter = ExportFormatter()
 ui = UIRenderer()
@@ -335,10 +376,10 @@ system_data = {
 }
 
 json_output = formatter.to_json(system_data)
-yaml_yaml(system_data)
+yaml_output = formatter.to_yaml(system_data)
 md_output = formatter.to_markdown(system_data, ui)
 
-with open("report_output = formatter.to.json", "w") as f:
+with open("report.json", "w", encoding="utf-8") as f:
     f.write(json_output)
 ```
 
@@ -371,7 +412,7 @@ app.display_system_info(info, detail_level=2)
 ### Example 2: Hardware-Based Model Recommendation
 
 ```python
-from src.detectors import GPUDetector, MemoryDetector
+from llm_neofetch.detectors import GPUDetector, MemoryDetector
 
 def recommend_model():
     """Recommend models based on hardware capabilities."""
@@ -420,7 +461,7 @@ for rec in recommend_model():
 
 ```python
 import time
-from src.detectors import CPUDetector, GPUDetector
+from llm_neofetch.detectors import CPUDetector, GPUDetector
 
 def monitor_system(duration_seconds: int = 60, interval: int = 5):
     """Monitor system resources."""
@@ -467,7 +508,6 @@ app.export(info, "markdown", "system_report.md")
 
 ```python
 import json
-from src.detectors import *
 
 def compare_systems(system1_file: str, system2_file: str):
     """Compare two systems from exported JSON files."""
@@ -505,4 +545,4 @@ To contribute to the API:
 3. Add unit tests
 4. Submit a pull request
 
-For more information, see the CONTRIBUTING.md file.
+For more information, see the Contributing section in the README.

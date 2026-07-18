@@ -1,26 +1,27 @@
 # LLM-Neofetch++ System Report
 
-Generated: 2026-02-24T13:17:38.756763
+Generated: 2026-07-18T06:32:25.836145
 
 ## System Information
 
-- **OS**: Linux-4.4.0-x86_64-with-glibc2.39
-- **Kernel**: 4.4.0
-- **Architecture**: x86_64
+- **OS**: Windows-11
+- **Kernel**: 10.0.26200
+- **Architecture**: AMD64
 
 ## CPU
 
-- **Model**: x86_64
-- **Cores**: 4 physical / 4 logical
-- **Frequency**: 2100 MHz
+- **Model**: 13th Gen Intel(R) Core(TM) i5-1335U
+- **Cores**: 10 physical / 12 logical
+- **Frequency**: 893 MHz (max 1300 MHz)
 
 ## GPU
 
-### GPU 1: No dedicated GPU detected
-- **Vendor**: Unknown
+### GPU 1: Intel(R) UHD Graphics
+- **Vendor**: Intel
+- **VRAM**: 2.0 GB
 
 ## Memory
 
-- **RAM**: 9.0 GB
-- **Usage**: 0.3%
+- **RAM**: 15.7 GB
+- **Usage**: 67.4%
 
