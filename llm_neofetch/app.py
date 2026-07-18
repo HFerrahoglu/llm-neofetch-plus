@@ -500,6 +500,10 @@ class LLMNeofetch:
     def can_run(self, model: str, quant: Optional[str], context: int) -> int:
         """Check whether a model fits on this system and report how.
 
+        Gives two verdicts per quantization: capacity (hardware totals)
+        and "right now" (memory actually free at this moment, accounting
+        for used VRAM and RAM held by other processes).
+
         Args:
             model: Model name or size (e.g. "llama3.1:70b", "8b").
             quant: Specific quantization to check (default: all known).
@@ -523,10 +527,22 @@ class LLMNeofetch:
         apple = AppleSiliconDetector.detect()
 
         ram_gb = mem["ram_total_bytes"] / (1024**3)
-        vram_gb = max([float(g["vram_total_gb"]) for g in gpus], default=0.0)
+        ram_free_gb = mem["ram_available_bytes"] / (1024**3)
+
+        best_gpu = max(
+            gpus, key=lambda g: float(g["vram_total_gb"]), default=None
+        )
+        vram_gb = float(best_gpu["vram_total_gb"]) if best_gpu else 0.0
+        vram_used_gb = float(best_gpu["vram_used_gb"]) if best_gpu else 0.0
+        vram_free_gb = max(0.0, vram_gb - vram_used_gb)
+
         gpu_bandwidth = 0.0
         if apple:
-            vram_gb = max(vram_gb, float(apple["unified_memory_gb"]) * 0.75)
+            unified = float(apple["unified_memory_gb"])
+            if unified * 0.75 > vram_gb:
+                # Unified memory: what's free for the GPU is what's free overall
+                vram_gb = unified * 0.75
+                vram_free_gb = ram_free_gb * 0.75
             gpu_bandwidth = float(apple.get("memory_bandwidth_gb_s", 0))
         if not gpu_bandwidth:
             gpu_bandwidth = llm_math.gpu_bandwidth_estimate(vram_gb)
@@ -554,11 +570,19 @@ class LLMNeofetch:
                 fits, bandwidth = "no", 0.0
                 budget = max(vram_gb, ram_gb * 0.8)
 
+            if vram_free_gb > 0 and total <= vram_free_gb:
+                fits_now = "gpu"
+            elif total <= ram_free_gb:
+                fits_now = "cpu"
+            else:
+                fits_now = "no"
+
             rows.append(
                 {
                     "quant": quant_name,
                     "total_gb": total,
                     "fits": fits,
+                    "fits_now": fits_now,
                     "tps": llm_math.tokens_per_second(weights, bandwidth)
                     if fits != "no"
                     else 0.0,
@@ -571,7 +595,9 @@ class LLMNeofetch:
             "params_b": params,
             "context": context,
             "vram_gb": vram_gb,
+            "vram_free_gb": vram_free_gb,
             "ram_gb": ram_gb,
+            "ram_free_gb": ram_free_gb,
             "rows": rows,
         }
         self.ui.print_can_run(report)

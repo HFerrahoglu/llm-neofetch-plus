@@ -115,6 +115,8 @@ llm-neofetch -i
 # Check whether a model fits (per-quant verdicts, speed, max context)
 llm-neofetch can-run llama3.1:70b
 llm-neofetch can-run qwen2.5:32b --quant Q4_K_M --context 16384
+# Two verdicts per quant: "Capacity" (hardware totals) and
+# "Right now" (memory actually free at this moment)
 # Exit code: 0 = fits, 2 = does not fit (script-friendly)
 ```
 

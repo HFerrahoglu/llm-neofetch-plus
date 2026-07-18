@@ -540,31 +540,36 @@ class UIRenderer:
         )
         self.console.print()
         self.console.print(panel)
-        self.console.print(
-            Text(
-                f"  Context: {context:,} tokens • "
-                f"VRAM: {report['vram_gb']:.1f} GB • "
-                f"RAM: {report['ram_gb']:.1f} GB",
-                style=self.styles["dim"],
-            )
-        )
+
+        subtitle = f"  Context: {context:,} tokens • VRAM: {report['vram_gb']:.1f} GB"
+        if "vram_free_gb" in report and report["vram_gb"] > 0:
+            subtitle += f" ({report['vram_free_gb']:.1f} free)"
+        subtitle += f" • RAM: {report['ram_gb']:.1f} GB"
+        if "ram_free_gb" in report:
+            subtitle += f" ({report['ram_free_gb']:.1f} free)"
+        self.console.print(Text(subtitle, style=self.styles["dim"]))
         self.console.print()
+
+        has_now = any("fits_now" in row for row in report["rows"])
 
         table = Table(box=None, pad_edge=False, padding=(0, 2, 0, 0))
         table.add_column("Quant", header_style=self.styles["dim"], style="bold")
         table.add_column("Memory", header_style=self.styles["dim"])
-        table.add_column("Verdict", header_style=self.styles["dim"])
+        table.add_column("Capacity", header_style=self.styles["dim"])
+        if has_now:
+            table.add_column("Right now", header_style=self.styles["dim"])
         table.add_column("~Speed", header_style=self.styles["dim"])
         table.add_column("Max ctx", header_style=self.styles["dim"])
 
-        for row in report["rows"]:
-            if row["fits"] == "gpu":
-                verdict = Text("✓ GPU", style=self.styles["success"])
-            elif row["fits"] == "cpu":
-                verdict = Text("✓ CPU (RAM)", style=self.styles["warning"])
-            else:
-                verdict = Text("✗ no", style=self.styles["danger"])
+        def verdict_text(fits: str, now: bool = False) -> Text:
+            if fits == "gpu":
+                return Text("✓ GPU", style=self.styles["success"])
+            if fits == "cpu":
+                return Text("✓ CPU", style=self.styles["warning"])
+            label = "✗ not now" if now else "✗ no"
+            return Text(label, style=self.styles["danger"])
 
+        for row in report["rows"]:
             speed = f"{row['tps']:.0f} tok/s" if row["tps"] else "—"
             max_ctx = row["max_ctx"]
             if max_ctx >= 1024:
@@ -574,15 +579,24 @@ class UIRenderer:
             else:
                 ctx_text = "—"
 
-            table.add_row(
+            cells = [
                 row["quant"],
                 f"{row['total_gb']:.1f} GB",
-                verdict,
-                speed,
-                ctx_text,
-            )
+                verdict_text(row["fits"]),
+            ]
+            if has_now:
+                cells.append(verdict_text(row.get("fits_now", "no"), now=True))
+            cells.extend([speed, ctx_text])
+            table.add_row(*cells)
 
         self.console.print(Padding(table, (0, 0, 0, 2)))
+        self.console.print(
+            Text(
+                "  Capacity uses hardware totals; 'Right now' uses memory "
+                "that is actually free at this moment.",
+                style=self.styles["dim"],
+            )
+        )
         self.console.print()
 
     def print_diff(self, report_a: Dict, report_b: Dict, name_a: str, name_b: str):

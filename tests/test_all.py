@@ -335,12 +335,15 @@ class TestCanRun(unittest.TestCase):
             "params_b": 8.0,
             "context": 8192,
             "vram_gb": 24.0,
+            "vram_free_gb": 4.0,
             "ram_gb": 64.0,
+            "ram_free_gb": 20.0,
             "rows": [
                 {
                     "quant": "Q4_K_M",
                     "total_gb": 6.2,
                     "fits": "gpu",
+                    "fits_now": "cpu",
                     "tps": 120.0,
                     "max_ctx": 65536,
                 }
@@ -350,6 +353,8 @@ class TestCanRun(unittest.TestCase):
         rendered = output.getvalue()
         self.assertIn("llama3.1:8b", rendered)
         self.assertIn("Q4_K_M", rendered)
+        self.assertIn("Right now", rendered)
+        self.assertIn("4.0 free", rendered)
 
 
 class TestCommandRunner(unittest.TestCase):
