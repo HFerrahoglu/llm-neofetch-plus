@@ -187,6 +187,9 @@ class CPUDetector(BaseDetector):
         Returns:
             CPU name string, or empty string on failure.
         """
+        if sys.platform != "win32":
+            return ""
+
         try:
             import winreg
 
@@ -663,6 +666,9 @@ class GPUDetector(BaseDetector):
         Returns:
             VRAM size in GB, or 0.0 if not found.
         """
+        if sys.platform != "win32":
+            return 0.0
+
         try:
             import winreg
 
